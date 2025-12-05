@@ -1,5 +1,26 @@
 import { Buffer } from "buffer";
-import { Address } from '@stellar/stellar-sdk';
+import { 
+  Address,
+  Account,
+  Asset,
+  BASE_FEE,
+  Contract,
+  Keypair,
+  Memo,
+  MemoHash,
+  MemoID,
+  MemoNone,
+  MemoReturn,
+  MemoText,
+  Networks,
+  Operation,
+  TimeoutInfinite,
+  Transaction,
+  TransactionBuilder,
+  xdr,
+  scValToNative,
+  nativeToScVal
+} from '@stellar/stellar-sdk';
 import {
   AssembledTransaction,
   Client as ContractClient,
@@ -22,7 +43,31 @@ import type {
   Typepoint,
   Duration,
 } from '@stellar/stellar-sdk/contract';
-export * from '@stellar/stellar-sdk'
+
+// Export commonly used stellar-sdk types and functions
+export {
+  Address,
+  Account,
+  Asset,
+  BASE_FEE,
+  Contract,
+  Keypair,
+  Memo,
+  MemoHash,
+  MemoID,
+  MemoNone,
+  MemoReturn,
+  MemoText,
+  Networks,
+  Operation,
+  TimeoutInfinite,
+  Transaction,
+  TransactionBuilder,
+  xdr,
+  scValToNative,
+  nativeToScVal
+};
+
 export * as contract from '@stellar/stellar-sdk/contract'
 export * as rpc from '@stellar/stellar-sdk/rpc'
 

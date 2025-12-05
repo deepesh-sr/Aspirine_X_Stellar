@@ -5,7 +5,12 @@
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>Emergency Fund Release DAO</title>
+		<script is:inline>
+			// Polyfill for Node.js globals required by some npm packages
+			window.global = window.globalThis = window;
+			window.process = window.process || { env: {}, browser: true };
+		</script>
 	</head>
 	<body>
 		<slot />
