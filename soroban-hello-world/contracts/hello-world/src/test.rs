@@ -11,7 +11,8 @@ fn test_initialize() {
 
     let admin = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     
     assert_eq!(client.get_voting_threshold(), 66);
     assert_eq!(client.get_proposal_count(), 0);
@@ -27,8 +28,10 @@ fn test_initialize_twice() {
 
     let admin = Address::generate(&env);
     
-    client.initialize(&admin, &66);
-    client.initialize(&admin, &66); // Should panic
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital); // Should panic
 }
 
 #[test]
@@ -42,7 +45,8 @@ fn test_add_member() {
     let admin = Address::generate(&env);
     let member = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_member(&admin, &member);
     
     assert!(client.is_member(&member));
@@ -56,7 +60,8 @@ fn test_add_funds() {
 
     let admin = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_funds(&1000);
     
     assert_eq!(client.get_treasury_balance(), 1000);
@@ -76,7 +81,8 @@ fn test_submit_proposal() {
     let admin = Address::generate(&env);
     let hospital = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     
     let proposal_id = client.submit_proposal(
         &hospital,
@@ -110,7 +116,8 @@ fn test_voting_and_approval() {
     let member3 = Address::generate(&env);
     
     // Initialize DAO with 66% threshold
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     
     // Add members
     client.add_member(&admin, &member1);
@@ -158,7 +165,8 @@ fn test_voting_and_rejection() {
     let member2 = Address::generate(&env);
     let member3 = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_member(&admin, &member1);
     client.add_member(&admin, &member2);
     client.add_member(&admin, &member3);
@@ -199,7 +207,8 @@ fn test_double_voting() {
     let hospital = Address::generate(&env);
     let member = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_member(&admin, &member);
     
     let proposal_id = client.submit_proposal(
@@ -227,7 +236,8 @@ fn test_execute_proposal() {
     let member2 = Address::generate(&env);
     let member3 = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_funds(&20000);
     
     client.add_member(&admin, &member1);
@@ -278,7 +288,8 @@ fn test_execute_without_funds() {
     let member2 = Address::generate(&env);
     let member3 = Address::generate(&env);
     
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     client.add_funds(&1000); // Not enough funds
     
     client.add_member(&admin, &member1);
@@ -312,15 +323,14 @@ fn test_complete_workflow() {
 
     // Setup
     let admin = Address::generate(&env);
-    let hospital1 = Address::generate(&env);
-    let hospital2 = Address::generate(&env);
+    let authorized_hospital = Address::generate(&env);
     let member1 = Address::generate(&env);
     let member2 = Address::generate(&env);
     let member3 = Address::generate(&env);
     let member4 = Address::generate(&env);
     
-    // Initialize DAO
-    client.initialize(&admin, &75); // 75% threshold
+    // Initialize DAO with authorized hospital
+    client.initialize(&admin, &75, &authorized_hospital); // 75% threshold
     client.add_funds(&50000);
     
     // Add members
@@ -329,17 +339,17 @@ fn test_complete_workflow() {
     client.add_member(&admin, &member3);
     client.add_member(&admin, &member4);
     
-    // Hospital 1 submits proposal
+    // Authorized hospital submits proposal 1
     let proposal1 = client.submit_proposal(
-        &hospital1,
+        &authorized_hospital,
         &String::from_str(&env, "Alice Johnson"),
         &String::from_str(&env, "Heart transplant"),
         &15000,
     );
     
-    // Hospital 2 submits proposal
+    // Authorized hospital submits proposal 2
     let proposal2 = client.submit_proposal(
-        &hospital2,
+        &authorized_hospital,
         &String::from_str(&env, "Bob Williams"),
         &String::from_str(&env, "Cancer treatment"),
         &12000,
@@ -400,7 +410,8 @@ fn test_mock_data_output() {
     let member3 = Address::generate(&env);
     
     // Initialize DAO with 66% threshold
-    client.initialize(&admin, &66);
+    let hospital = Address::generate(&env);
+    client.initialize(&admin, &66, &hospital);
     assert_eq!(client.get_voting_threshold(), 66);
     assert_eq!(client.get_treasury_balance(), 0);
     

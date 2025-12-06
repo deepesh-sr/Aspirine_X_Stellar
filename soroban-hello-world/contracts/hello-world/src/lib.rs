@@ -36,6 +36,7 @@ pub enum DataKey {
     VotingThreshold,
     Treasury,
     DAOMember(Address),
+    AuthorizedHospital,       // Single authorized hospital address
 }
 
 #[contract]
@@ -43,9 +44,10 @@ pub struct EmergencyFundDAO;
 
 #[contractimpl]
 impl EmergencyFundDAO {
-    /// Initialize the DAO with an admin and voting threshold
+    /// Initialize the DAO with an admin, voting threshold, and authorized hospital
     /// voting_threshold: minimum percentage of votes needed to approve (0-100)
-    pub fn initialize(env: Env, admin: Address, voting_threshold: u32) {
+    /// authorized_hospital: the single hospital address allowed to submit proposals
+    pub fn initialize(env: Env, admin: Address, voting_threshold: u32, authorized_hospital: Address) {
         // Ensure not already initialized
         if env.storage().instance().has(&DataKey::Admin) {
             panic!("DAO already initialized");
@@ -61,6 +63,7 @@ impl EmergencyFundDAO {
         env.storage().instance().set(&DataKey::VotingThreshold, &voting_threshold);
         env.storage().instance().set(&DataKey::ProposalCount, &0u64);
         env.storage().instance().set(&DataKey::Treasury, &0i128);
+        env.storage().instance().set(&DataKey::AuthorizedHospital, &authorized_hospital);
     }
     
     /// Add a member to the DAO (only admin can do this)
@@ -86,7 +89,7 @@ impl EmergencyFundDAO {
         env.storage().instance().set(&DataKey::Treasury, &treasury);
     }
     
-    /// Submit a new proposal (only hospitals can do this)
+    /// Submit a new proposal (only authorized hospital can do this)
     pub fn submit_proposal(
         env: Env,
         hospital: Address,
@@ -95,6 +98,15 @@ impl EmergencyFundDAO {
         amount_requested: i128,
     ) -> u64 {
         hospital.require_auth();
+        
+        // Check if hospital is authorized
+        let authorized_hospital: Address = env.storage().instance()
+            .get(&DataKey::AuthorizedHospital)
+            .unwrap_or_else(|| panic!("Authorized hospital not set"));
+        
+        if hospital != authorized_hospital {
+            panic!("Only the authorized hospital can submit proposals");
+        }
         
         if amount_requested <= 0 {
             panic!("Amount must be positive");
@@ -225,8 +237,9 @@ impl EmergencyFundDAO {
         proposal.status = ProposalStatus::Executed;
         env.storage().instance().set(&DataKey::Proposal(proposal_id), &proposal);
         
-        // In a real implementation, you would transfer tokens here
-        // For this example, we're just tracking the balance
+        // NOTE: In a production system, this is where you would transfer actual tokens
+        // from the DAO contract to proposal.hospital using a token contract.
+        // For this MVP, we only track the balance changes.
     }
     
     /// Get proposal details by ID
@@ -259,6 +272,25 @@ impl EmergencyFundDAO {
     /// Get voting threshold
     pub fn get_voting_threshold(env: Env) -> u32 {
         env.storage().instance().get(&DataKey::VotingThreshold).unwrap_or(0)
+    }
+    
+    /// Get authorized hospital address
+    pub fn get_authorized_hospital(env: Env) -> Address {
+        env.storage().instance()
+            .get(&DataKey::AuthorizedHospital)
+            .unwrap_or_else(|| panic!("Authorized hospital not set"))
+    }
+    
+    /// Update authorized hospital (admin only)
+    pub fn set_authorized_hospital(env: Env, admin: Address, new_hospital: Address) {
+        admin.require_auth();
+        
+        let stored_admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        if admin != stored_admin {
+            panic!("Only admin can update authorized hospital");
+        }
+        
+        env.storage().instance().set(&DataKey::AuthorizedHospital, &new_hospital);
     }
 }
 

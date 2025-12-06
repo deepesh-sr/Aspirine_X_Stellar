@@ -46,8 +46,9 @@ import ConnectWallet from '../components/connect-wallet.astro';
 					<span class="card-icon">🚀</span>
 					<h3>Initialize DAO</h3>
 				</div>
-				<p class="card-description">Set up the DAO with voting threshold (admin only, one-time)</p>
+				<p class="card-description">Set up the DAO with voting threshold and authorized hospital (admin only, one-time)</p>
 				<form id="initialize-form" class="action-form">
+					<input type="text" name="hospital" placeholder="Authorized hospital address (GABC...)" pattern="G[A-Z0-9]{55}" required>
 					<input type="number" name="threshold" placeholder="Voting threshold (51-100%)" min="51" max="100" value="66" required>
 					<button type="submit" class="btn btn-primary" data-action="initialize">
 						<span class="btn-text">Initialize</span>
@@ -585,6 +586,7 @@ import ConnectWallet from '../components/connect-wallet.astro';
 		e.preventDefault();
 		const form = e.target as HTMLFormElement;
 		const button = form.querySelector('button')!;
+		const hospitalAddress = (form.elements.namedItem('hospital') as HTMLInputElement).value;
 		const threshold = parseInt((form.elements.namedItem('threshold') as HTMLInputElement).value);
 
 		const publicKey = await getPublicKey();
@@ -597,10 +599,14 @@ import ConnectWallet from '../components/connect-wallet.astro';
 
 		try {
 			await initContract();
-			const tx = await contract!.initialize({ admin: publicKey, voting_threshold: threshold });
+			const tx = await contract!.initialize({ 
+				admin: publicKey, 
+				voting_threshold: threshold,
+				authorized_hospital: hospitalAddress
+			});
 			const result = await tx.signAndSend();
 			
-			showResult('result-initialize', `✅ DAO initialized! Threshold: ${threshold}%`, 'success');
+			showResult('result-initialize', `✅ DAO initialized! Threshold: ${threshold}%, Hospital: ${hospitalAddress.slice(0,8)}...`, 'success');
 			showStatus('DAO successfully initialized!', 'success');
 			loadStats();
 		} catch (error: any) {
